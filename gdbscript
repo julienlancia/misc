@@ -1,0 +1,92 @@
+
+#gdb -x gdbscript
+
+shell qemu-aarch64 -g 5555 -L /usr/aarch64-linux-gnu/ ./decrypted_file SSTIC{aaaaaaaabbbbbbbbbbbbb} &
+#shell qemu-aarch64 -g 5555 -L  /usr/aarch64-linux-gnu/lib/debug/ ./decrypted_file SSTIC{aaaaaaaabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb} &
+
+file decrypted_file
+
+# options
+set confirm off
+set pagination off
+set logging on
+set logging file gdb.log
+set print symbol on
+set print address on
+set can-use-hw-watchpoints 0
+
+set sysroot /usr/aarch64-linux-gnu/
+set solib-search-path /usr/aarch64-linux-gnu/
+
+set directories /usr/src/gcc-arm-none-eabi-source/src/libstdc++-v3/libsupc++/:/usr/src/gcc-arm-none-eabi-source/src/libgcc/
+
+# ----------------------
+# breakpoints infos
+# ----------------------
+# delete all
+delete
+# show current
+info breakpoints
+# break on all function call
+# rbreak .
+
+# ----------------------
+target remote localhost:5555
+# ----------------------
+
+
+#while 1
+#	stepi
+#	if $pc < 0x4000000000
+#		x/i $pc
+#	end
+#end
+
+# ----------------------
+# break all functions
+# ----------------------
+#rbreak .
+
+
+#catch catch  
+#catch throw
+
+
+
+# ----------------------
+# all addresses from LSDA
+# ----------------------
+# main
+#b *0x402e68
+
+# fail
+#b *0x00402f20
+
+# flag string
+watch *0x40008007fe
+
+
+
+
+# ----------------------
+# Exception handling
+# ----------------------
+#b __cxa_throw
+#b __cxa_begin_catch
+#b __gxx_personality_v0
+#b __gnu_unwind_frame
+#b _Unwind_GetLanguageSpecificData
+
+# ----------------------
+# set "not good"
+# b *0x402f18
+# ----------------------
+
+#watch $x28
+
+# DWARF skip ???
+# watch *0x4074e4
+
+#continue
+#run
+#quit
