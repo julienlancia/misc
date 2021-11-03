@@ -34,7 +34,7 @@ p = angr.Project("vault")
 
 
 # p.hook(0x400ad6, hook_bypass, 4)
-p.hook(0x4007d0, ret0())
+# p.hook(0x4007d0, ret0())
 
 ##### SYMBOLIC ARGS 
 
@@ -60,6 +60,7 @@ def constraint_char(state, c):
     '''returns constraints s.t. c is printable'''
     return state.solver.And(c <= '~', c >= ' ')
 
+# ADD LEADING CHAR CONSTRAINTS
 # flag_val = "ECSC{"
 # cpt = 0
 # for i, c in enumerate(flag.chop(8)):
@@ -77,12 +78,12 @@ sm = p.factory.simgr(state)
 
 # base = 0x400000
 
-
 def print_instr(sm):
     print(sm.active)
-    state = sm.active[-1]
-    block = p.factory.block(state.addr)
-    block.pp()
+    if len(sm.active)>0:
+        state = sm.active[-1]
+        block = p.factory.block(state.addr)
+        block.pp()
     #raw_input()
     return sm
 
@@ -98,7 +99,7 @@ def print_active(sm):
 # sm.run()
 # res=sm.run(step_func=print_active)
 
-# TRICK TO GET A SOLUTION WHEN COMPLEXITY IS HIGH : DEpth First
+# TRICK TO GET A SOLUTION WHEN COMPLEXITY IS HIGH : Depth First
 # sm.use_technique(angr.exploration_techniques.DFS())
 
 # Not working anymore
@@ -117,12 +118,16 @@ res=sm.explore(find=0x00400be7, avoid=[0x00400baf,0x00400b84] , step_func=print_
 
 
 if len(sm.found)>0:
-    found = sm.found[0] # A state that reached the find condition from explore
-    flag = found.posix.dumps(1)
-    # flag = found.solver.eval(sym_arg, cast_to=str) # Return a concrete string value for the sym arg to reach this state
-    print(flag)
-    # print(flag.encode("hex"))
+    for found in sm.found:
+        flag = found.solver.eval(flag, cast_to=bytes)
+        print(flag)
+        out = found.posix.dumps(1)
+        print(out)
+        #print(flag.encode("hex"))
 else:
     print("state Not found")
     print(sm.deadended)
+    for dead in sm.deadended:
+        out = dead.posix.dumps(1)
+        print(out)
     # import ipdb;ipdb.set_trace()
